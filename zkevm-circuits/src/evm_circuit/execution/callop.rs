@@ -417,6 +417,7 @@ impl<F: Field> ExecutionGadget<F> for CallOpGadget<F> {
                     ]),
                     |cb| {
                         let precompile_output_bytes_rlc = cb.query_cell_phase2();
+
                         cb.copy_table_lookup(
                             Word::from_lo_unchecked(callee_call_id.expr()),
                             CopyDataType::RlcAcc.expr(),
