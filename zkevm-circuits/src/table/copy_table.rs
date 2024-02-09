@@ -34,10 +34,12 @@ pub struct CopyTable {
     pub rwc_inc_left: Column<Advice>,
     /// Selector for the tag BinaryNumberChip
     pub q_enable: Column<Fixed>,
+    // We use the `BinaryNumberBits` instead of `BinaryNumberChip` in order to construct the table
+    // without attaching any constraints.
     /// Binary chip to constrain the copy table conditionally depending on the
     /// current row's tag, whether it is Bytecode, Memory, TxCalldata or
     /// TxLog.
-    pub tag: BinaryNumberConfig<CopyDataType, 3>,
+    pub tag: BinaryNumberBits<3>,
 }
 
 impl CopyTable {
@@ -47,7 +49,7 @@ impl CopyTable {
             is_first: meta.advice_column(),
             id: WordLoHi::new([meta.advice_column(), meta.advice_column()]),
             q_enable,
-            tag: BinaryNumberChip::configure(meta, q_enable, None),
+            tag: BinaryNumberBits::construct(meta),
             addr: meta.advice_column(),
             src_addr_end: meta.advice_column(),
             bytes_left: meta.advice_column(),
@@ -223,7 +225,6 @@ impl CopyTable {
                 }
                 offset += 1;
 
-                let tag_chip = BinaryNumberChip::construct(self.tag);
                 let copy_table_columns = <CopyTable as LookupTable<F>>::advice_columns(self);
                 for copy_event in block.copy_events.iter() {
                     for (tag, row, _) in Self::assignments(copy_event, *challenges) {
@@ -235,7 +236,7 @@ impl CopyTable {
                                 || value,
                             )?;
                         }
-                        tag_chip.assign(&mut region, offset, &tag)?;
+                        self.tag.assign(&mut region, offset, &tag)?;
                         offset += 1;
                     }
                 }
@@ -259,7 +260,7 @@ impl CopyTable {
 
 impl<F: Field> LookupTable<F> for CopyTable {
     fn columns(&self) -> Vec<Column<Any>> {
-        vec![
+        let mut columns = vec![
             self.is_first.into(),
             self.id.lo().into(),
             self.id.hi().into(),
@@ -269,11 +270,13 @@ impl<F: Field> LookupTable<F> for CopyTable {
             self.rlc_acc.into(),
             self.rw_counter.into(),
             self.rwc_inc_left.into(),
-        ]
+        ];
+        columns.extend(self.tag.0.iter().map(|c| Into::<Column<Any>>::into(*c)));
+        columns
     }
 
     fn annotations(&self) -> Vec<String> {
-        vec![
+        let mut names = vec![
             String::from("is_first"),
             String::from("id_lo"),
             String::from("id_hi"),
@@ -283,7 +286,9 @@ impl<F: Field> LookupTable<F> for CopyTable {
             String::from("rlc_acc"),
             String::from("rw_counter"),
             String::from("rwc_inc_left"),
-        ]
+        ];
+        names.extend((0..self.tag.0.len()).map(|i| format!("tag_bit{i}")));
+        names
     }
 
     fn table_exprs(&self, meta: &mut VirtualCells<F>) -> Vec<Expression<F>> {
