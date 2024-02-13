@@ -17,7 +17,7 @@ use halo2_proofs::plonk::Error;
 /// case of n=0. Unlike the usual k * n + r = a, which forces r = a when n=0,
 /// this equation assures that r<n or r=n=0.
 #[derive(Clone, Debug)]
-pub(crate) struct ModGadget<F> {
+pub struct ModGadget<F> {
     k: util::Word<F>,
     a_or_zero: util::Word<F>,
     mul: MulAddWordsGadget<F>,
@@ -27,7 +27,7 @@ pub(crate) struct ModGadget<F> {
     lt: LtWordGadget<F>,
 }
 impl<F: Field> ModGadget<F> {
-    pub(crate) fn construct(cb: &mut ConstraintBuilder<F>, words: [&util::Word<F>; 3]) -> Self {
+    pub fn construct(cb: &mut ConstraintBuilder<F>, words: [&util::Word<F>; 3]) -> Self {
         let (a, n, r) = (words[0], words[1], words[2]);
         let k = cb.query_word();
         let a_or_zero = cb.query_word();
@@ -60,7 +60,7 @@ impl<F: Field> ModGadget<F> {
         }
     }
 
-    pub(crate) fn assign(
+    pub fn assign(
         &self,
         region: &mut CachedRegion<'_, '_, F>,
         offset: usize,

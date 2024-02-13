@@ -16,7 +16,7 @@ use std::collections::BTreeMap;
 
 pub(crate) mod common_gadget;
 pub(crate) mod constraint_builder;
-pub(crate) mod math_gadget;
+pub mod math_gadget;
 pub(crate) mod memory_gadget;
 
 pub use gadgets::util::{and, not, or, select, sum};
@@ -339,7 +339,7 @@ impl<F: FieldExt> CellManager<F> {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct RandomLinearCombination<F, const N: usize> {
+pub struct RandomLinearCombination<F, const N: usize> {
     // random linear combination expression of cells
     expression: Expression<F>,
     // inner cells in little-endian for synthesis

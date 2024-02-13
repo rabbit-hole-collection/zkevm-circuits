@@ -9,7 +9,7 @@ use halo2_proofs::{
 mod execution;
 pub mod param;
 pub(crate) mod step;
-pub(crate) mod util;
+pub mod util;
 
 pub mod table;
 

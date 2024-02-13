@@ -14,7 +14,7 @@ mod is_zero;
 mod lt;
 mod lt_word;
 mod min_max;
-mod modulo;
+pub mod modulo;
 mod mul_add_words;
 mod mul_add_words512;
 mod mul_word_u64;
